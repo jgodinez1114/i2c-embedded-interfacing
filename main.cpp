@@ -1,8 +1,17 @@
+/* Purpose: Interface components with LPC4088QSB 
+ *          and emulate an alarm clock
+ * Programmers: Joel Godinez && Brandon Hernandez
+
+
+
+
 #include"mbed.h"
 //#include <stdio.h>
-//#include "i2c.h"
+#include "i2c.h"
 #define decode_bcd(x)	((x >> 4) * 10 + (x & 0x0F))
-#define encode_bcd(x)	((((x/10) & 0x0F) << 4) + (x % 10)) 
+#define 
+
+encode_bcd(x)	((((x/10) & 0x0F) << 4) + (x % 10)) 
 
 //using namespace std;
 
@@ -227,11 +236,9 @@ lcd_data('0');
 }
 void lcd_clear(){
 	
-	for(int i=87;i>0;i--)
-	{lcd_data(' ');
+	for(int i=87;i>0;i--){
+		lcd_data(' ');
 	}
-	
-	
 }
 void displayVal(int val1, int val2){
 	
@@ -348,7 +355,6 @@ void printInt(int number){
 
 
 
-
 int main() {
 lcd_init();
 //lcd_Alpha();
@@ -384,8 +390,8 @@ lcd_init();
 	// temperature data
 	i2c.start();
 	i2c.write(0xd0);
-	i2c.write(0x0e);
-	i2c.write(0x20);
+	i2c.write(0x0e);	//control register
+	i2c.write(0x20); // enable
 	i2c.write(0);
 	i2c.stop();
 	
@@ -425,7 +431,7 @@ lcd_init();
 	i2c.write(0xAA);	
 	
 	
-	//light
+	//light 
 	i2c.start();
 	i2c.write(0x20); // initial start
 	i2c.write(0x00);
@@ -440,7 +446,9 @@ lcd_init();
 	i2c.start();
 	i2c.write(0x20);
 	i2c.write(0x04);
-	int lightRead = i2c.read(0x21);
+	i2c.start();
+	i2c.write(0x21);
+	int lightRead = i2c.read(0); // read with 0 bit
 	lcd_data(lightRead);
 
 	
@@ -452,9 +460,9 @@ lcd_init();
 		i2c.write(0x04);
 		i2c.start();
 		i2c.write(0x21);
-		int ALS     = i2c.read(1); // Als whole 16 bits
+		int ALS     = i2c.read(1); // Ambient light sensor whole 16 bits
 		int white   = i2c.read(1); // white
-		int ALS_INT = i2c.read(0);// iint trigger event
+		int ALS_INT = i2c.read(0);// int trigger event
 		i2c.stop();
 		
 		ALS = decode_bcd(ALS);
@@ -538,16 +546,16 @@ lcd_init();
 		//start communication with temp module
 		i2c.start();
 	
-																	//take reading from temperature module
+		//take reading from temperature module
 		i2c.write(0x91);
 		
-																	//get the first input
+		//get the first input
 		temp = i2c.read(0);
 		
-																	//end communications
+		//end communications
 		i2c.stop();
 		
-																	//analyze reading from temperature sensor
+		//analyze reading from temperature sensor
 		lcd_data('T');
 		lcd_data('e');
 		lcd_data('m');
@@ -555,14 +563,14 @@ lcd_init();
 		lcd_data(':');
 		lcd_data(' ');
 		printInt(temp);
-		lcd_data(' ');		
+		lcd_data(223);		
 		lcd_data('C');
 		lcd_data(' ');
 		lcd_data('(');
 		float tempf;
 		tempf = (temp * (1.8)) + 32;
 		printInt(tempf);
-		lcd_data(' ');
+		lcd_data(223);
 		lcd_data('F');
 		lcd_data(')');
 			
@@ -715,13 +723,13 @@ wait (3);
 		lcd_data(':');
 		lcd_data(' ');
 		printInt(temp);
-		lcd_data(' ');		
+		lcd_data(223);		//degree symbol
 		lcd_data('C');
 		lcd_data(' ');
 		lcd_data('(');
 		tempf = (temp * (1.8)) + 32;
 		printInt(tempf);
-		lcd_data(' ');
+		lcd_data(223);
 		lcd_data('F');
 		lcd_data(')');
 		
@@ -756,7 +764,7 @@ wait (3);
 				lcd_data(' ');
 				lcd_data(' ');
 				lcd_data(' ');
-	printInt(hour);
+				printInt(hour);
 			lcd_data(':');
 			printInt(min);
 			lcd_data(' ');
@@ -789,9 +797,8 @@ wait (3);
 			printInt(year);
 			lcd_data(' ');
 			
-
 			
 wait (3);
-}
 	}
+}
 // -------------------------------------------------------------------------
